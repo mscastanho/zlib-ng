@@ -369,14 +369,14 @@ jobs:
         LSAN_OPTIONS: ${{ matrix.lsan-options || 'verbosity=1' }}
 
     - name: Upload coverage report
-      if: matrix.codecov && ( env.CODECOV_TOKEN_SECRET != '' || github.repository == 'zlib-ng/zlib-ng' )
+      if: matrix.codecov && ( env.CODECOV_TOKEN_SECRET != '' || github.repository == 'mscastanho/zlib-ng' )
       shell: bash
       run: |
         bash tools/codecov-upload.sh
       env:
         # Codecov does not yet support GitHub Actions
         CODECOV_TOKEN_SECRET: "${{secrets.CODECOV_TOKEN}}"
-        CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN || 'e4fdf847-f541-4ab1-9d50-3d27e5913906' }}"
+        CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN || 'e3d18229-a897-42d4-9b76-52a385a11428' }}"
         CODECOV_FLAGS: "${{ matrix.codecov }}"
         CODECOV_NAME:  "${{ matrix.name }}"
         CODECOV_EXEC:  "${{ matrix.gcov-exec || 'gcov' }}"
