@@ -93,6 +93,7 @@ if(BASEARCH_ARM_FOUND)
     option(WITH_NEON "Build with NEON intrinsics" ON)
 elseif(BASEARCH_PPC_FOUND)
     option(WITH_POWER8 "Build with optimisations for POWER8" ON)
+    option(WITH_POWER9 "Build with optimisations for POWER9" ON)
 elseif(BASEARCH_S360_FOUND AND "${ARCH}" MATCHES "s390x")
     option(WITH_DFLTCC_DEFLATE "Use DEFLATE CONVERSION CALL instruction for compression on IBM Z" OFF)
     option(WITH_DFLTCC_INFLATE "Use DEFLATE CONVERSION CALL instruction for decompression on IBM Z" OFF)
@@ -105,7 +106,7 @@ elseif(BASEARCH_X86_FOUND)
 endif()
 
 mark_as_advanced(FORCE ZLIB_DUAL_LINK WITH_ACLE WITH_NEON WITH_DFLTCC_DEFLATE WITH_DFLTCC_INFLATE
-    WITH_AVX2 WITH_SSE2 WITH_SSSE3 WITH_SSE4 WITH_PCLMULQDQ WITH_POWER8 WITH_INFLATE_STRICT WITH_INFLATE_ALLOW_INVALID_DIST)
+    WITH_AVX2 WITH_SSE2 WITH_SSSE3 WITH_SSE4 WITH_PCLMULQDQ WITH_POWER8 WITH_POWER9 WITH_INFLATE_STRICT WITH_INFLATE_ALLOW_INVALID_DIST)
 
 add_feature_info(ZLIB_COMPAT ZLIB_COMPAT "Provide a zlib-compatible API")
 add_feature_info(WITH_GZFILEOP WITH_GZFILEOP "Compile with support for gzFile-related functions")
@@ -119,6 +120,7 @@ if(BASEARCH_ARM_FOUND)
     add_feature_info(WITH_NEON WITH_NEON "Build with NEON intrinsics")
 elseif(BASEARCH_PPC_FOUND)
     add_feature_info(WITH_POWER8 WITH_POWER8 "Build with optimisations for POWER8")
+    add_feature_info(WITH_POWER9 WITH_POWER9 "Build with optimisations for POWER9")
 endif()
 add_feature_info(WITH_MAINTAINER_WARNINGS WITH_MAINTAINER_WARNINGS "Build with project maintainer warnings")
 add_feature_info(WITH_CODE_COVERAGE WITH_CODE_COVERAGE "Enable code coverage reporting")
@@ -232,6 +234,7 @@ else()
                 set(ACLEFLAG "-march=armv8-a+crc")
             elseif(BASEARCH_PPC_FOUND)
                 set(POWER8FLAG "-mcpu=power8")
+                set(POWER9FLAG "-mcpu=power9")
             elseif(BASEARCH_X86_FOUND)
                 set(AVX2FLAG "-mavx2")
                 set(SSE2FLAG "-msse2")
@@ -467,6 +470,17 @@ if(BASEARCH_PPC_FOUND)
         HAVE_POWER8
     )
     set(CMAKE_REQUIRED_FLAGS)
+
+    # Check if we have what we need for POWER9 optimizations
+    set(CMAKE_REQUIRED_FLAGS "${POWER9FLAG}")
+    check_c_source_compiles(
+        "#include <sys/auxv.h>
+        int main() {
+          return (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_3_00);
+        }"
+        HAVE_POWER9
+    )
+    set(CMAKE_REQUIRED_FLAGS)
 elseif(BASEARCH_X86_FOUND)
     # Check whether compiler supports SSE2 instrinics
     if(WITH_NATIVE_INSTRUCTIONS)
@@ -688,16 +702,25 @@ if(WITH_OPTIM)
             add_feature_info(ACLE_CRC 1 "Support ACLE optimized CRC hash generation, using \"${ACLEFLAG}\"")
         endif()
     elseif(BASEARCH_PPC_FOUND)
-        if(WITH_POWER8 AND HAVE_POWER8)
+        if(HAVE_POWER8 OR HAVE_POWER9)
+            if(WITH_POWER8 AND HAVE_POWER8)
+                add_definitions(-DPOWER8)
+                set(ZLIB_POWER8_SRCS
+                    ${ARCHDIR}/slide_hash_power8.c)
+                set_source_files_properties(
+                    ${ZLIB_POWER8_SRCS}
+                    PROPERTIES COMPILE_FLAGS ${POWER8FLAG})
+            endif()
+            if(WITH_POWER9 AND HAVE_POWER9)
+                add_definitions(-DPOWER9)
+                set(ZLIB_POWER9_SRCS )
+                set_source_files_properties(
+                    ${ZLIB_POWER9_SRCS}
+                    PROPERTIES COMPILE_FLAGS ${POWER9FLAG})
+            endif()
             add_definitions(-DPOWER_FEATURES)
-            add_definitions(-DPOWER8)
-            set(ZLIB_POWER8_SRCS
-                ${ARCHDIR}/slide_hash_power8.c)
-            set_source_files_properties(
-                ${ZLIB_POWER8_SRCS}
-                PROPERTIES COMPILE_FLAGS ${POWER8FLAG})
             list(APPEND ZLIB_ARCH_HDRS ${ARCHDIR}/power.h)
-            list(APPEND ZLIB_ARCH_SRCS ${ARCHDIR}/power.c ${ZLIB_POWER8_SRCS})
+            list(APPEND ZLIB_ARCH_SRCS ${ARCHDIR}/power.c ${ZLIB_POWER8_SRCS} ${ZLIB_POWER9_SRCS})
         endif()
     elseif(BASEARCH_S360_FOUND AND "${ARCH}" MATCHES "s390x")
         if(WITH_DFLTCC_DEFLATE OR WITH_DFLTCC_INFLATE)

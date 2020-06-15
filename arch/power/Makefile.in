@@ -1,5 +1,6 @@
 # Makefile for POWER-specific files
-# Copyright (C) 2020 Matheus Castanho <msc@linux.ibm.com>, IBM
+# Copyright (C) 2020 IBM Corporation
+# Author: Matheus Castanho <msc@linux.ibm.com>
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 CC=
@@ -13,6 +14,7 @@ SRCTOP=../..
 TOPDIR=$(SRCTOP)
 
 P8FLAGS=-mcpu=power8
+P9FLAGS=-mcpu=power9
 
 all: power.o \
      power.lo \
