@@ -75,6 +75,9 @@ extern int32_t compare258_unaligned_32(const unsigned char *src0, const unsigned
 #ifdef UNALIGNED64_OK
 extern int32_t compare258_unaligned_64(const unsigned char *src0, const unsigned char *src1);
 #endif
+#ifdef POWER9
+extern int32_t compare258_power9(const unsigned char *src0, const unsigned char *src1);
+#endif
 #ifdef X86_SSE42_CMP_STR
 extern int32_t compare258_unaligned_sse4(const unsigned char *src0, const unsigned char *src1);
 #endif
@@ -90,6 +93,9 @@ extern int32_t longest_match_unaligned_16(deflate_state *const s, Pos cur_match)
 extern int32_t longest_match_unaligned_32(deflate_state *const s, Pos cur_match);
 #ifdef UNALIGNED64_OK
 extern int32_t longest_match_unaligned_64(deflate_state *const s, Pos cur_match);
+#endif
+#ifdef POWER9
+extern int32_t longest_match_unaligned_power9(deflate_state *const s, Pos cur_match);
 #endif
 #ifdef X86_SSE42_CMP_STR
 extern int32_t longest_match_unaligned_sse4(deflate_state *const s, Pos cur_match);
@@ -280,6 +286,10 @@ ZLIB_INTERNAL int32_t longest_match_stub(deflate_state *const s, Pos cur_match) 
     functable.longest_match = &longest_match_unaligned_32;
 #  else
     functable.longest_match = &longest_match_unaligned_16;
+#  endif
+#  ifdef POWER9
+    if (power_cpu_has_arch_3_00)
+        functable.longest_match = &longest_match_unaligned_power9;
 #  endif
 #  ifdef X86_SSE42_CMP_STR
     if (x86_cpu_has_sse42)

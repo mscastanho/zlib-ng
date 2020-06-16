@@ -1415,8 +1415,8 @@ case "${ARCH}" in
                 fi
 
                 if test $HAVE_POWER9 -eq 1; then
-                    ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS}"
-                    ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS}"
+                    ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} compare258_power9.o"
+                    ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} compare258_power9.lo"
                     POWERFLAGS="${POWERFLAGS} -DPOWER9"
                 fi
             fi

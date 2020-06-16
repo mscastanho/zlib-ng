@@ -16,10 +16,18 @@ TOPDIR=$(SRCTOP)
 P8FLAGS=-mcpu=power8
 P9FLAGS=-mcpu=power9
 
-all: power.o \
+all: compare258_power9.o \
+     compare258_power9.lo \
+     power.o \
      power.lo \
      slide_hash_power8.o \
      slide_hash_power8.lo
+
+compare258_power9.o:
+	$(CC) $(CFLAGS) $(P9FLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/compare258_power9.c
+
+compare258_power9.lo:
+	$(CC) $(SFLAGS) $(P9FLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/compare258_power9.c
 
 power.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/power.c

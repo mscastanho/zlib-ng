@@ -713,7 +713,8 @@ if(WITH_OPTIM)
             endif()
             if(WITH_POWER9 AND HAVE_POWER9)
                 add_definitions(-DPOWER9)
-                set(ZLIB_POWER9_SRCS )
+                set(ZLIB_POWER9_SRCS
+                    ${ARCHDIR}/compare258_power9.c)
                 set_source_files_properties(
                     ${ZLIB_POWER9_SRCS}
                     PROPERTIES COMPILE_FLAGS ${POWER9FLAG})
