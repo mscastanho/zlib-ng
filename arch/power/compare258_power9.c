@@ -9,13 +9,43 @@
 #include "deflate.h"
 
 static inline int32_t compare256_unaligned_power9_static(const unsigned char *src0, const unsigned char *src1) {
-    int32_t total_match = 0;
-
+    int32_t total_match = 0, curr_match;
+    vector unsigned char vsrc0, vsrc1, vc;
     do {
-        vector unsigned char vsrc0 = *(vector unsigned char *)src0;
-        vector unsigned char vsrc1 = *(vector unsigned char *)src1;
-        vector unsigned char vc = (vector unsigned char) vec_cmpne(vsrc0,vsrc1);
-        int32_t curr_match = vec_cnttz_lsbb(vc);
+        vsrc0 = *(vector unsigned char *)src0;
+        vsrc1 = *(vector unsigned char *)src1;
+        vc = (vector unsigned char) vec_cmpne(vsrc0,vsrc1);
+        curr_match = vec_cnttz_lsbb(vc);
+
+        if (curr_match != 16)
+            return (int32_t)(total_match + curr_match);
+
+        src0 += 16, src1 += 16, total_match += 16;
+
+        vsrc0 = *(vector unsigned char *)src0;
+        vsrc1 = *(vector unsigned char *)src1;
+        vc = (vector unsigned char) vec_cmpne(vsrc0,vsrc1);
+        curr_match = vec_cnttz_lsbb(vc);
+
+        if (curr_match != 16)
+            return (int32_t)(total_match + curr_match);
+
+        src0 += 16, src1 += 16, total_match += 16;
+
+        vsrc0 = *(vector unsigned char *)src0;
+        vsrc1 = *(vector unsigned char *)src1;
+        vc = (vector unsigned char) vec_cmpne(vsrc0,vsrc1);
+        curr_match = vec_cnttz_lsbb(vc);
+
+        if (curr_match != 16)
+            return (int32_t)(total_match + curr_match);
+
+        src0 += 16, src1 += 16, total_match += 16;
+
+        vsrc0 = *(vector unsigned char *)src0;
+        vsrc1 = *(vector unsigned char *)src1;
+        vc = (vector unsigned char) vec_cmpne(vsrc0,vsrc1);
+        curr_match = vec_cnttz_lsbb(vc);
 
         if (curr_match != 16)
             return (int32_t)(total_match + curr_match);
