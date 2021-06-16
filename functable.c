@@ -110,6 +110,8 @@ Z_INTERNAL uint32_t crc32_generic(uint32_t, const unsigned char *, uint64_t);
 
 #ifdef ARM_ACLE_CRC_HASH
 extern uint32_t crc32_acle(uint32_t, const unsigned char *, uint64_t);
+#elif defined(POWER8_VSX_CRC32)
+extern uint32_t crc32_power8(uint32_t, const unsigned char *, uint64_t);
 #endif
 
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -468,6 +470,10 @@ Z_INTERNAL uint32_t crc32_stub(uint32_t crc, const unsigned char *buf, uint64_t 
 #  error No endian defined
 #endif
     }
+#if defined(POWER8_VSX_CRC32)
+    if (power_cpu_has_arch_2_07)
+        functable.crc32 = crc32_power8;
+#endif
 
     return functable.crc32(crc, buf, len);
 }
